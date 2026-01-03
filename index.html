@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SQL Critter Quest</title>
+
+    <!-- ✅ Layout Fix (prevents overlap + fits browser width/height) -->
+    <style>
+      html,
+      body {
+        width: 100%;
+        max-width: 100%;
+        overflow-x: hidden;
+      }
+
+      #gameLayout,
+      #leftCol,
+      #rightCol,
+      .panel,
+      #output,
+      #history,
+      #levelsList {
+        min-width: 0;
+      }
+
+      #gameLayout {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 360px;
+        gap: 18px;
+        align-items: start;
+        width: 100%;
+        max-width: 100%;
+      }
+
+      #rightCol {
+        display: grid;
+        grid-template-rows: 1fr auto;
+        gap: 18px;
+        position: sticky;
+        top: 12px;
+        max-height: calc(100vh - 24px);
+      }
+
+      .levels-panel {
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        min-height: 260px;
+      }
+      #levelsList {
+        overflow: auto;
+        min-height: 0;
+      }
+
+      #historyPanel {
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        max-height: 320px;
+      }
+      #history {
+        overflow: auto;
+        min-height: 0;
+      }
+
+      #output {
+        overflow: auto;
+        max-height: 380px;
+      }
+
+      #output table {
+        width: max-content;
+        max-width: none;
+      }
+
+      @media (max-width: 1100px) {
+        #gameLayout {
+          grid-template-columns: 1fr;
+        }
+        #rightCol {
+          position: relative;
+          top: auto;
+          max-height: none;
+        }
+        #historyPanel {
+          max-height: none;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- ✅ Correct Popup (single + emoji-free + NO duplicate IDs) -->
+    <div
+      id="winPopup"
+      class="win-popup hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-live="polite"
+      aria-labelledby="winTitle"
+      aria-describedby="winMsg"
+      tabindex="-1"
+    >
+      <div class="win-card win-anim" role="document">
+        <h3 class="win-title" id="winTitle">Correct!</h3>
+        <p class="win-msg" id="winMsg">Your query is correct.</p>
+        <p class="win-quote" id="winQuote">“SQL is just gossiping with data.”</p>
+
+        <button id="winClose" class="primary" type="button">Continue</button>
+      </div>
+    </div>
+
+    <!-- ✅ Leaderboard Popup (hidden by default) -->
+    <div
+      id="leaderboardPopup"
+      class="win-popup hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="leaderboardTitle"
+      tabindex="-1"
+    >
+      <div class="win-card" role="document">
+        <h3 class="win-title" id="leaderboardTitle" style="margin: 0 0 8px">
+          🏆 Leaderboard
+        </h3>
+        <p class="muted" style="margin: 0 0 10px">
+          Ranked by highest score (ties broken by progress).
+        </p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>Name</th>
+              <th>Score</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="leaderboardBody"></tbody>
+        </table>
+
+        <div class="btn-row" style="justify-content: center; margin-top: 12px">
+          <button id="leaderboardClose" class="ghost small" type="button">
+            Close
+          </button>
+
+          <button
+            id="leaderboardClear"
+            class="danger small hidden"
+            type="button"
+            aria-hidden="true"
+          >
+            Clear (Admin)
+          </button>
+        </div>
+
+        <p class="muted" style="margin: 10px 0 0; font-size: 12px">
+          Tip: Rankings are saved on this device.
+        </p>
+      </div>
+    </div>
+
+    <!-- ✅ Data Tables Popup (Schema Viewer) -->
+    <div
+      id="dataPopup"
+      class="win-popup hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="dataTitle"
+      tabindex="-1"
+    >
+      <div class="win-card" role="document">
+        <h3 class="win-title" id="dataTitle" style="margin: 0 0 8px">
+          📚 Data Tables
+        </h3>
+        <p class="muted" style="margin: 0 0 12px">
+          Click a table to view schema + a small preview.
+        </p>
+
+        <div class="grid" style="grid-template-columns: 0.7fr 1.3fr; gap: 14px">
+          <div>
+            <div class="pill tiny" style="margin-bottom: 8px">Tables</div>
+            <div id="tableList"></div>
+          </div>
+
+          <div>
+            <div class="panel-head" style="margin-bottom: 8px">
+              <h2 id="tableTitle" style="margin: 0">—</h2>
+            </div>
+
+            <div class="tabs">
+              <button id="tabSchema" class="tab active" type="button">
+                Schema
+              </button>
+              <button id="tabPreview" class="tab" type="button">Preview</button>
+            </div>
+
+            <div id="schemaBox"></div>
+            <div id="previewBox" class="hidden"></div>
+          </div>
+        </div>
+
+        <div class="btn-row" style="justify-content: center; margin-top: 14px">
+          <button id="dataClose" class="ghost small" type="button">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+      <!-- ✅ START / WELCOME SCREEN -->
+      <section id="startScreen" class="start-screen">
+        <div class="mascot-wrap" aria-hidden="true">
+          <div class="mascot">
+            <div class="ear ear-left"></div>
+            <div class="ear ear-right"></div>
+            <div class="face">
+              <div class="eyes">
+                <span class="eye"></span>
+                <span class="eye"></span>
+              </div>
+              <div class="nose"></div>
+              <div class="mouth"></div>
+            </div>
+            <div class="belly">
+              <span class="badge">SQL</span>
+            </div>
+          </div>
+          <div class="mascot-shadow"></div>
+        </div>
+
+        <h1 class="start-title">SQL Critter Quest</h1>
+        <p class="start-subtitle">
+          Learn SQL with a silly little teammate 🦦. Solve mini-missions, earn
+          points, and level up.
+        </p>
+
+        <div class="start-leaderboard">
+          <div class="start-card">
+            <h2>Player</h2>
+            <p class="muted">
+              Enter your name to track your score on the leaderboard.
+            </p>
+
+            <div class="name-row">
+              <input
+                id="playerName"
+                class="name-input"
+                type="text"
+                maxlength="18"
+                placeholder="e.g., Luffy
+                "
+                autocomplete="nickname"
+              />
+              <button id="savePlayer" class="ghost small" type="button">
+                Save
+              </button>
+            </div>
+
+            <div id="nameStatus" class="muted" style="margin-top: 8px"></div>
+
+            <button id="startGame" class="start-btn" type="button">
+              Start Game
+            </button>
+          </div>
+
+          <div class="start-card">
+            <h2>Leaderboard</h2>
+            <p class="muted">
+              Hidden by default. Click to view rankings in a popup.
+            </p>
+
+            <button id="openLeaderboard" class="small" type="button">
+              View Leaderboard
+            </button>
+
+            <p class="muted" style="margin: 10px 0 0; font-size: 12px"></p>
+          </div>
+        </div>
+
+        <div class="start-grid">
+          <div class="start-card">
+            <h2>How to Play</h2>
+            <ul>
+              <li>Read the mission.</li>
+              <li>Write a SQL query.</li>
+              <li>Click <b>Run Query</b> to see results.</li>
+              <li>Click <b>Check Answer</b> to validate.</li>
+              <li>Use <b>Hint</b> if stuck (bonus will be reduced).</li>
+            </ul>
+          </div>
+
+          <div class="start-card">
+            <h2>Why it’s fun</h2>
+            <p class="muted">
+              I hope this serves as a helpful guide for beginners starting their database journey. Let’s dive into the world of queries and learn SQL together! 🥳
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ✅ GAME SCREEN -->
+      <div id="gameScreen" class="game-screen hidden">
+        <header class="top">
+          <div class="brand">
+            <div class="mini-mascot" aria-hidden="true">🦦</div>
+            <div>
+              <h1 class="brand-title">SQL Critter Quest</h1>
+              <p class="subtitle">
+                Solve missions using SQL. Your query is checked against expected
+                results.
+              </p>
+            </div>
+          </div>
+
+          <div class="stats">
+            <div class="stat">
+              <div class="stat-label">Level</div>
+              <div class="stat-value" id="levelNum">1</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">Score</div>
+              <div class="stat-value" id="score">0</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">Streak</div>
+              <div class="stat-value" id="streak">0</div>
+            </div>
+          </div>
+
+          <button id="dataBtn" class="small" type="button">Data Tables</button>
+        </header>
+
+        <div id="gameLayout">
+          <!-- LEFT COLUMN -->
+          <div id="leftCol">
+            <section class="panel mission" id="missionPanel">
+              <div class="panel-head">
+                <div class="mission-left">
+                  <h2 id="levelTitle">Loading…</h2>
+                  <div class="mission-tag">Mission</div>
+                </div>
+                <div class="pill" id="difficulty">—</div>
+              </div>
+
+              <p id="levelPrompt" class="muted">Loading…</p>
+
+              <div class="hint-row">
+                <button id="hintBtn" class="ghost" type="button">Hint 💡</button>
+                <div id="hintText" class="hint muted"></div>
+              </div>
+
+              <div class="editor">
+                <label class="label" for="sql">Your SQL spell 🪄</label>
+                <textarea
+                  id="sql"
+                  rows="7"
+                  spellcheck="false"
+                  placeholder="-- Write your SQL query here..."
+                ></textarea>
+
+                <div class="btn-row">
+                  <button id="run" type="button">Run Query</button>
+                  <button id="check" class="primary" type="button">
+                    Check Answer
+                  </button>
+                  <button id="next" class="ghost" type="button" disabled>
+                    Next Level →
+                  </button>
+                  <button id="reset" class="ghost danger" type="button">
+                    Reset DB
+                  </button>
+                  <button id="restartGame" class="ghost danger" type="button">
+                    Restart Game
+                  </button>
+                </div>
+
+                <div id="status" class="status muted"></div>
+              </div>
+            </section>
+
+            <section class="panel panel-scroll" id="resultsPanel">
+              <div class="panel-head">
+                <h2>Results</h2>
+                <div class="pill tiny">Output</div>
+              </div>
+              <div id="output"></div>
+            </section>
+
+            <footer class="footer muted">
+              Your critter believes in you. Even when your query doesn’t. 🦦💚
+            </footer>
+          </div>
+
+          <!-- RIGHT COLUMN -->
+          <div id="rightCol">
+            <aside class="panel levels-panel" id="levelsPanel">
+              <div class="panel-head">
+                <h2>Levels</h2>
+                <div class="pill tiny" id="levelsProgress">0/29</div>
+              </div>
+
+              <div class="levels-help muted">
+                ✅ unlocked • 🔒 locked • ⭐ current
+              </div>
+
+              <div id="levelsList" class="levels-list"></div>
+            </aside>
+
+            <aside class="panel panel-scroll" id="historyPanel">
+              <div class="panel-head">
+                <h2>Query History</h2>
+                <div class="history-head-right">
+                  <div class="pill tiny" id="historyCount">0</div>
+                  <button
+                    id="clearHistory"
+                    class="ghost danger small"
+                    type="button"
+                  >
+                    Clear
+                  </button>
+                </div>
+              </div>
+              <div id="history" class="history"></div>
+            </aside>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

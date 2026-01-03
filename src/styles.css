@@ -1,0 +1,897 @@
+:root {
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 550;
+
+  /* =========================
+     SQL Critter Quest — Jungle Notebook
+     FLAT colors, better contrast, fewer accents
+     + ONE background scene image
+     + Cream text inside green panels
+     + Cream buttons for Reset/Restart/Clear
+     + Clean win popup (no mascots/sparkles/winEmoji)
+     ========================= */
+
+  /* Background jungle */
+  --bg-jungle: #0e2a1d;
+
+  /* ✅ ONE jungle scene image (single situation)
+     Put your image in /public and set path here.
+     Example: /bg-jungle-scene.png
+  */
+  --bg-scene: url("/bg-jungle-scene.png");
+
+  /* Notebook / beige shell */
+  --beige: #fbf4df;
+  --beige-dark: #e6dcc1;
+  --beige-edge: #cdbf9b;
+
+  /* Panels */
+  --panel: #163526;
+  --panel-2: #1b3d2c;
+
+  /* Text */
+  --ink: #1f2933;
+  --muted-ink: rgba(31,41,51,0.70);
+
+  /* Cream text system for dark panels */
+  --cream: #fff3d6;
+  --cream-2: #f6ead0;
+  --deep-green: #143826;
+
+  /* Accents */
+  --primary: #2fd37a;
+  --primary-hover: #20b565;
+  --warning: #ffcc4d;
+  --danger: #ff6b57;
+  --danger-hover: #ff5740;
+
+  /* Lines / focus */
+  --border: rgba(31,41,51,0.14);
+  --panel-border: rgba(255,255,255,0.12);
+  --focus: rgba(47,211,122,0.28);
+
+  /* Shadow */
+  --shadow-soft: 0 10px 26px rgba(0,0,0,0.18);
+
+  /* ✅ Slightly larger base type */
+  font-size: 16px;
+}
+
+* { box-sizing: border-box; }
+
+html, body { height: 100%; }
+
+/* ✅ IMPORTANT: prevent any horizontal overflow / overlap */
+html, body {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 22px 14px;
+
+  /* ✅ background image behind notebook */
+  background-color: var(--bg-jungle);
+  background-image: var(--bg-scene);
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+}
+
+/* ✅ soften background so notebook stays readable */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: rgba(14, 42, 29, 0.55);
+}
+
+/* Utility */
+.hidden { display: none !important; }
+.muted { opacity: 0.78; }
+.small { font-size: 13px; }
+
+/* =========================
+   Main Container (Notebook)
+   ✅ Wider to fit big screens
+   ========================= */
+.container {
+  width: min(1400px, 100%);
+  max-width: 1400px;
+  border-radius: 26px;
+
+  background: var(--beige);
+  border: 4px solid var(--beige-dark);
+
+  box-shadow:
+    0 18px 45px rgba(0,0,0,0.40),
+    inset 0 0 0 3px var(--beige-edge);
+
+  padding: 18px;
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+
+/* subtle vignette */
+.container::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.22;
+  background:
+    radial-gradient(700px 300px at 50% -10%, rgba(31,41,51,0.10), transparent 70%),
+    radial-gradient(700px 300px at 50% 110%, rgba(31,41,51,0.08), transparent 70%);
+}
+
+/* ---------- Typography ---------- */
+h1, h2 { margin: 0; }
+
+.brand-title,
+.start-title {
+  font-weight: 1000;
+  letter-spacing: 0.4px;
+  color: var(--deep-green);
+}
+
+.brand-title { font-size: 30px; }
+.start-title { font-size: 40px; }
+
+.subtitle {
+  margin: 6px 0 0;
+  color: var(--muted-ink);
+  max-width: 760px;
+  font-size: 15px;
+}
+
+/* ---------- Layout ---------- */
+.top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.brand { display: flex; gap: 12px; align-items: flex-start; }
+
+.mini-mascot {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  background: rgba(31,41,51,0.06);
+  border: 2px solid rgba(31,41,51,0.16);
+  box-shadow: 0 10px 18px rgba(0,0,0,0.14);
+  font-size: 22px;
+  transform: rotate(-6deg);
+}
+
+/* ---------- Stats ---------- */
+.stats { display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+
+.stat {
+  min-width: 110px;
+  text-align: center;
+  border-radius: 18px;
+  padding: 10px 12px;
+  background: #fff9ea;
+  border: 2px solid var(--beige-edge);
+  box-shadow: 0 6px 0 rgba(0,0,0,0.14);
+}
+
+.stat-label {
+  font-size: 12px;
+  color: rgba(31,41,51,0.62);
+  font-weight: 900;
+}
+
+.stat-value { font-size: 22px; font-weight: 1000; color: var(--ink); }
+
+/* =========================
+   Panels (cream text)
+   ========================= */
+.panel {
+  border-radius: 22px;
+  background: var(--panel);
+  border: 2px solid rgba(255,255,255,0.10);
+  padding: 16px;
+  box-shadow: 0 10px 22px rgba(0,0,0,0.20);
+  color: var(--cream);
+}
+
+/* ✅ Avoid layout pushing: allow shrinking for ALL critical blocks */
+#gameLayout, #leftCol, #rightCol,
+#levelsPanel, #historyPanel, #resultsPanel,
+.panel, #output, #history, #levelsList,
+textarea, table {
+  min-width: 0;
+}
+
+.panel h2,
+.panel p,
+.panel .muted,
+.label,
+.hint,
+#history,
+#output {
+  color: var(--cream);
+}
+
+.panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.mission-left { display: flex; align-items: center; gap: 10px; }
+
+.mission-tag {
+  font-size: 11px;
+  font-weight: 1000;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: rgba(47,211,122,0.18);
+  border: 2px solid rgba(47,211,122,0.25);
+  color: var(--cream);
+}
+
+.pill {
+  font-size: 11px;
+  font-weight: 1000;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: var(--cream);
+  color: rgba(31,41,51,0.92);
+  border: 2px solid var(--beige-edge);
+  box-shadow: 0 5px 0 rgba(0,0,0,0.14);
+}
+
+.pill.tiny { padding: 6px 10px; font-size: 10px; }
+
+/* ---------- Labels ---------- */
+.label {
+  display: block;
+  font-size: 13px;
+  margin: 10px 0 6px;
+  font-weight: 900;
+}
+
+/* =========================
+   ✅ NEW MAIN GAME LAYOUT
+   No overlap. Fits browser width.
+   Left = mission/results/footer
+   Right = levels + history
+   ========================= */
+#gameLayout{
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px; /* left flexible, right fixed */
+  gap: 14px;
+  align-items: start;
+  width: 100%;
+  max-width: 100%;
+}
+
+/* Right column stacks Levels + History */
+#rightCol{
+  display: grid;
+  grid-template-rows: 1fr auto;
+  gap: 14px;
+  position: sticky;
+  top: 12px;
+  max-height: calc(100vh - 24px);
+}
+
+/* Make sure left/right can shrink */
+#leftCol{ min-width: 0; }
+#rightCol{ min-width: 0; }
+
+/* =========================
+   SQL Editor (cream text)
+   ========================= */
+#sql {
+  width: 100%;
+  min-height: 190px;
+  resize: vertical;
+  padding: 14px;
+  border-radius: 18px;
+
+  background: var(--panel-2);
+  border: 2px solid rgba(47,211,122,0.35);
+  color: var(--cream);
+
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
+  font-size: 15px;
+  line-height: 1.45;
+  outline: none;
+
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04);
+}
+
+#sql:focus {
+  border-color: rgba(47,211,122,0.70);
+  box-shadow: 0 0 0 5px var(--focus);
+}
+
+#sql::placeholder { color: rgba(255, 243, 214, 0.65); }
+
+/* ---------- Buttons ---------- */
+.btn-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+  align-items: center;
+}
+
+button {
+  border-radius: 16px;
+  padding: 12px 16px;
+  font-size: 14px;
+  font-weight: 1000;
+  cursor: pointer;
+
+  background: #fff9ea;
+  border: 2px solid var(--beige-edge);
+  color: rgba(31,41,51,0.95);
+
+  box-shadow: 0 7px 0 rgba(0,0,0,0.18);
+  transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
+}
+
+button:hover { transform: translateY(-2px); }
+button:active { transform: translateY(4px); box-shadow: 0 3px 0 rgba(0,0,0,0.18); }
+button:disabled { opacity: 0.45; cursor: not-allowed; transform: none; box-shadow: none; }
+
+/* Primary */
+button.primary {
+  background: var(--primary);
+  border-color: rgba(0,0,0,0.18);
+  color: rgba(10,20,14,0.96);
+}
+button.primary:hover { background: var(--primary-hover); }
+
+/* Ghost */
+button.ghost {
+  background: transparent;
+  border: 2px dashed rgba(255,255,255,0.25);
+  color: var(--cream);
+}
+
+/* ✅ Cream "utility danger" (Reset DB / Restart / Clear) */
+button.danger,
+button.ghost.danger {
+  background: var(--cream);
+  color: var(--deep-green);
+  border: 2px solid rgba(0,0,0,0.18);
+}
+button.danger:hover,
+button.ghost.danger:hover {
+  background: var(--cream-2);
+}
+
+/* Small pills */
+button.small { padding: 8px 10px; font-size: 12px; border-radius: 999px; }
+
+button:focus-visible,
+.name-input:focus-visible,
+#sql:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 5px var(--focus);
+}
+
+/* ---------- Hint + Status ---------- */
+.hint-row { display: flex; gap: 10px; align-items: center; margin: 10px 0 0; }
+
+.status { margin-top: 10px; min-height: 22px; font-weight: 900; }
+.status.ok { color: rgba(47,211,122,0.96); }
+
+.status.bad {
+  color: var(--cream);
+  background: rgba(255,204,77,0.14);
+  border: 2px solid rgba(255,204,77,0.24);
+  padding: 6px 10px;
+  border-radius: 14px;
+  display: inline-block;
+}
+
+/* =========================
+   ✅ Results: scroll INSIDE panel
+   ========================= */
+#resultsPanel{
+  overflow: hidden;
+}
+
+#output{
+  margin-top: 10px;
+  padding: 12px;
+  border-radius: 18px;
+  border: 2px solid rgba(255,255,255,0.10);
+  background: var(--panel-2);
+  overflow: auto;
+  max-height: 380px; /* prevents pushing page */
+}
+
+/* Output error */
+.error {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 16px;
+  background: rgba(255,107,87,0.18);
+  border: 2px solid rgba(255,107,87,0.26);
+  color: var(--cream);
+}
+
+/* =========================
+   ✅ Levels panel: scroll list inside
+   ========================= */
+.levels-panel{
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 260px;
+}
+
+.levels-panel .levels-help{
+  font-size: 12px;
+  margin-bottom: 10px;
+}
+
+.levels-list{
+  display: grid;
+  gap: 8px;
+  overflow: auto;     /* scroll INSIDE */
+  min-height: 0;
+  padding-right: 4px;
+}
+
+/* Level item styles (rendered by main.js) */
+.level-item{
+  width: 100%;
+  text-align: left;
+  padding: 10px 12px;
+  border-radius: 16px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.10);
+  color: var(--cream);
+  box-shadow: none;
+  cursor: pointer;
+}
+.level-item:hover{ transform: translateY(-1px); }
+.level-item .li-top{
+  display:flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+}
+.level-item .li-num{
+  font-weight: 1100;
+  font-size: 12px;
+  opacity: 0.95;
+}
+.level-item .li-title{
+  font-weight: 1000;
+  font-size: 13px;
+}
+.level-item .li-sub{
+  margin-top: 4px;
+  font-size: 12px;
+  opacity: 0.78;
+}
+.level-item.current{
+  border-color: rgba(47,211,122,0.70);
+  box-shadow: 0 0 0 4px var(--focus);
+}
+.level-item.locked{
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.level-item.locked:hover{ transform: none; }
+
+/* =========================
+   ✅ History panel: scroll list inside
+   ========================= */
+#historyPanel{
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  max-height: 320px; /* keeps sidebar stable */
+}
+
+.history{
+  overflow: auto;
+  min-height: 0;
+  padding-right: 4px;
+}
+
+/* History item style */
+.history-item{
+  padding: 10px 10px 12px;
+  border-radius: 16px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  margin-top: 10px;
+}
+.history-item .meta{
+  display:flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 12px;
+  opacity: 0.85;
+  margin-bottom: 8px;
+}
+.history-item pre{
+  margin:0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 12.5px;
+  line-height: 1.35;
+}
+
+/* =========================
+   Tables
+   IMPORTANT: do NOT give global min-width (it causes overflow).
+   We scope wide-table behavior to output & popups only.
+   ========================= */
+table { width: 100%; border-collapse: collapse; }
+
+thead th {
+  position: sticky;
+  top: 0;
+  background: rgba(255,255,255,0.06);
+  text-align: left;
+  font-weight: 1000;
+  font-size: 12px;
+  border-bottom: 2px solid rgba(255,255,255,0.10);
+  padding: 10px;
+  color: var(--cream);
+}
+
+tbody td {
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  padding: 10px;
+  font-size: 13px;
+  color: var(--cream);
+}
+
+tbody tr:hover td { background: rgba(255,255,255,0.05); }
+
+/* If results tables are wide: allow horizontal scroll INSIDE output */
+#output table { min-width: 520px; width: max-content; max-width: none; }
+
+/* ---------- Start screen / name input ---------- */
+.start-screen { padding: 22px 10px 12px; text-align: center; }
+
+.start-subtitle {
+  margin: 10px auto 18px;
+  max-width: 760px;
+  color: rgba(31,41,51,0.72);
+  font-weight: 700;
+}
+
+/* ✅ Start Game button */
+.start-btn {
+  margin: 10px auto 18px;
+  padding: 14px 22px;
+  border-radius: 18px;
+  background: var(--primary);
+  border: 2px solid rgba(0,0,0,0.18);
+  color: var(--cream);
+  font-weight: 1100;
+  box-shadow: 0 10px 0 rgba(0,0,0,0.18);
+}
+.start-btn:hover { background: var(--primary-hover); }
+
+/* Save button on start screen */
+#startScreen #savePlayer.ghost.small {
+  background: var(--cream);
+  color: var(--deep-green);
+  border: 2px solid var(--beige-edge);
+}
+#startScreen #savePlayer.ghost.small:hover { background: var(--cream-2); }
+
+.start-leaderboard {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.name-row { display: flex; gap: 10px; align-items: center; margin-top: 10px; }
+
+.name-input {
+  flex: 1;
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 2px solid rgba(47,211,122,0.30);
+  background: var(--panel-2);
+  color: var(--cream);
+  outline: none;
+  font-weight: 900;
+}
+
+.name-input:focus { box-shadow: 0 0 0 5px var(--focus); }
+
+.start-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+
+.start-card {
+  text-align: left;
+  border: 2px solid rgba(31,41,51,0.14);
+  background: #fff9ea;
+  border-radius: 22px;
+  padding: 16px;
+  color: rgba(31,41,51,0.92);
+}
+
+.start-card h2 { font-size: 16px; font-weight: 1000; margin-bottom: 8px; }
+
+.start-card ul {
+  margin: 10px 0 0;
+  padding-left: 18px;
+  color: rgba(31,41,51,0.85);
+  font-weight: 700;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 1100px) {
+  #gameLayout{
+    grid-template-columns: 1fr;
+  }
+  #rightCol{
+    position: relative;
+    top: auto;
+    max-height: none;
+  }
+  #historyPanel{
+    max-height: none;
+  }
+  #output{
+    max-height: 340px;
+  }
+}
+
+@media (max-width: 900px) {
+  .top { flex-direction: column; align-items: stretch; }
+  .stats { justify-content: flex-start; }
+  .start-grid { grid-template-columns: 1fr; }
+  .start-leaderboard { grid-template-columns: 1fr; }
+  #output table { min-width: 460px; }
+}
+
+/* ---------- Popups (shared) ---------- */
+.win-popup {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: grid;
+  place-items: center;
+  z-index: 9999;
+  padding: 16px;
+  pointer-events: auto;
+}
+.win-popup.hidden { display: none !important; }
+
+.win-card {
+  width: min(520px, 92vw);
+  border-radius: 24px;
+  background: var(--beige);
+  border: 4px solid var(--beige-dark);
+  box-shadow: 0 24px 70px rgba(0,0,0,0.35);
+  padding: 18px 18px 16px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.win-title { margin: 0; font-size: 26px; font-weight: 1100; color: rgba(31,41,51,0.95); }
+.win-msg { margin: 6px 0 8px; color: rgba(31,41,51,0.80); font-weight: 800; }
+.win-quote { margin: 0 0 14px; color: rgba(31,41,51,0.68); font-weight: 700; font-style: italic; }
+
+body.modal-open { overflow: hidden; }
+
+/* ✅ Better popup scrolling on mobile (Leaderboard) */
+#leaderboardPopup .win-card {
+  max-height: 80vh;
+  overflow: auto;
+  text-align: left;
+  -webkit-overflow-scrolling: touch;
+}
+
+#leaderboardPopup table { width: 100%; }
+#leaderboardPopup td, #leaderboardPopup th { white-space: nowrap; }
+
+/* =========================
+   ✅ Win Popup animation (clean)
+   - keeps "pop" + glow
+   - NO mascots, NO sparkles, NO #winEmoji
+   ========================= */
+.win-card { position: relative; }
+
+.win-card.win-anim {
+  animation: winPop 520ms cubic-bezier(.2,1.25,.3,1) both;
+}
+
+@keyframes winPop {
+  0%   { transform: translateY(16px) scale(0.86); opacity: 0; }
+  60%  { transform: translateY(0) scale(1.03); opacity: 1; }
+  100% { transform: translateY(0) scale(1); }
+}
+
+/* Glow pulse */
+.win-card::after {
+  content: "";
+  position: absolute;
+  inset: -8px;
+  border-radius: 28px;
+  pointer-events: none;
+  opacity: 0;
+  box-shadow: 0 0 0 0 rgba(47,211,122,0.0);
+}
+
+.win-card.win-anim::after {
+  animation: winGlow 900ms ease-out both;
+}
+
+@keyframes winGlow {
+  0%   { opacity: 0; box-shadow: 0 0 0 0 rgba(47,211,122,0.00); }
+  30%  { opacity: 1; box-shadow: 0 0 0 10px rgba(47,211,122,0.18); }
+  70%  { opacity: 1; box-shadow: 0 0 0 18px rgba(47,211,122,0.10); }
+  100% { opacity: 0; box-shadow: 0 0 0 26px rgba(47,211,122,0.00); }
+}
+
+/* Title wiggle ONLY when popup animates */
+.win-title { animation: none; }
+.win-card.win-anim .win-title { animation: winWiggle 700ms ease-out both; }
+
+@keyframes winWiggle {
+  0%   { transform: translateY(-6px); opacity: 0; }
+  50%  { transform: translateY(0); opacity: 1; }
+  70%  { transform: rotate(1deg); }
+  85%  { transform: rotate(-1deg); }
+  100% { transform: rotate(0); }
+}
+
+/* =========================
+   Leaderboard Popup Fixes
+   ========================= */
+#leaderboardPopup .win-card { background: var(--beige); color: var(--ink); }
+
+#leaderboardPopup table thead th,
+#leaderboardPopup table tbody td { color: var(--ink); }
+
+#leaderboardPopup table thead th {
+  background: rgba(31, 41, 51, 0.06);
+  border-bottom: 2px solid rgba(31, 41, 51, 0.12);
+}
+
+/* Close button readable */
+#leaderboardPopup button.ghost {
+  background: var(--cream);
+  color: var(--deep-green);
+  border: 2px solid var(--beige-edge);
+  box-shadow: 0 7px 0 rgba(0,0,0,0.18);
+}
+#leaderboardPopup button.ghost:hover { background: var(--cream-2); }
+
+/* Admin clear button consistency */
+#leaderboardPopup button.danger,
+#leaderboardPopup button.ghost.danger {
+  background: var(--cream);
+  color: var(--deep-green);
+  border: 2px solid var(--beige-edge);
+}
+
+/* =========================
+   Data Tables Popup (Schema Viewer)
+   ========================= */
+#dataPopup.win-popup {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: grid;
+  place-items: center;
+  z-index: 9999;
+  padding: 16px;
+}
+
+#dataPopup.win-popup.hidden { display: none !important; }
+
+#dataPopup .win-card {
+  width: min(980px, 96vw);
+  max-height: 85vh;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+
+  border-radius: 24px;
+  background: var(--beige);
+  border: 4px solid var(--beige-dark);
+  box-shadow: 0 24px 70px rgba(0,0,0,0.35);
+
+  padding: 18px;
+  text-align: left;
+}
+
+/* Table list buttons */
+#dataPopup #tableList button {
+  width: 100%;
+  text-align: left;
+  margin: 8px 0 0;
+  padding: 12px;
+  border-radius: 16px;
+  background: var(--panel-2);
+  border: 2px solid rgba(47,211,122,0.20);
+  color: var(--cream);
+  font-weight: 1000;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04);
+}
+#dataPopup #tableList button:hover { transform: translateY(-2px); }
+#dataPopup #tableList button.active {
+  border-color: rgba(47,211,122,0.70);
+  box-shadow: 0 0 0 5px var(--focus);
+}
+
+/* Tabs */
+#dataPopup .tabs { display: flex; gap: 10px; margin: 10px 0 12px; flex-wrap: wrap; }
+
+#dataPopup .tab {
+  border-radius: 999px;
+  padding: 9px 12px;
+  font-size: 12px;
+  font-weight: 1100;
+  cursor: pointer;
+  background: transparent;
+  border: 2px dashed rgba(31,41,51,0.25);
+  color: rgba(31,41,51,0.85);
+}
+
+#dataPopup .tab.active {
+  background: var(--cream);
+  color: rgba(31,41,51,0.92);
+  border: 2px solid var(--beige-edge);
+  box-shadow: 0 5px 0 rgba(0,0,0,0.14);
+}
+
+/* Schema/preview code boxes */
+#schemaBox,
+#previewBox {
+  background: var(--panel-2);
+  border: 2px solid rgba(255,255,255,0.10);
+  border-radius: 18px;
+  padding: 12px;
+  overflow: auto;
+  max-height: 45vh;
+
+  color: var(--cream);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* Tables inside Data Popup */
+#dataPopup table thead th,
+#dataPopup table tbody td {
+  color: var(--cream);
+}
+
+/* ✅ Hard-disable removed popup nodes (safe even if they don’t exist) */
+#winEmoji,
+.win-mascot,
+.win-sparkles {
+  display: none !important;
+}
